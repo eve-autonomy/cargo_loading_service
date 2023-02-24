@@ -28,7 +28,6 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>cargo_loading_msgs</depend>
   <depend>in_parking_msgs</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
