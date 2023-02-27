@@ -53,7 +53,7 @@ CargoLoadingService::CargoLoadingService(const rclcpp::NodeOptions & options)
     "/in_parking/state", rclcpp::QoS{1},
     std::bind(&CargoLoadingService::onInParkingStatus, this, _1), subscribe_option);
   sub_infrastructure_status_ = this->create_subscription<InfrastructureStateArray>(
-    "/v2i/infrastructure_status", rclcpp::QoS{1},
+    "/v2i/infrastructure_states", rclcpp::QoS{1},
     std::bind(&CargoLoadingService::onInfrastructureStatus, this, _1), subscribe_option);
 
   // timer
