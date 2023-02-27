@@ -41,7 +41,7 @@ CargoLoadingService::CargoLoadingService(const rclcpp::NodeOptions & options)
 
   // Service
   srv_cargo_loading_ = proxy.create_service<ExecuteInParkingTask>(
-    "/parking/cargo_loading", std::bind(&CargoLoadingService::execCargoLoading, this, _1, _2),
+    "/in_parking/task", std::bind(&CargoLoadingService::execCargoLoading, this, _1, _2),
     rmw_qos_profile_services_default, callback_group_service_);
 
   // Publisher
