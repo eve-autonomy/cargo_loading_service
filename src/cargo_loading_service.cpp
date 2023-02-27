@@ -114,14 +114,6 @@ void CargoLoadingService::onTimer()
 {
   RCLCPP_INFO(this->get_logger(), "timer start");
 
-// aw_stateのsubscribe確認、NONEならばreject
-  if (aw_state_ == InParkingStatus::NONE) {
-    RCLCPP_WARN(this->get_logger(), "aw_state is NONE, reject...");
-    service_result_ = ExecuteInParkingTask::Response::FAIL;
-    timer_->cancel();
-    return;
-  }
-
   // 設備連携が完了していない
   if (!infra_approval_) {
     // aw_stateで条件分岐
