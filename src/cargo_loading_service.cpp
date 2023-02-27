@@ -129,13 +129,20 @@ void CargoLoadingService::onTimer()
         infra_approval_ = true;
         service_result_ = ExecuteInParkingTask::Response::FAIL;
         break;
-      // AWが停留所にいる場合、設備連携要求を発出
+      // AWが停留所にいる場合
       case InParkingStatus::AW_WAITING_FOR_ROUTE:
       case InParkingStatus::AW_WAITING_FOR_ENGAGE:
       case InParkingStatus::AW_ARRIVED_PARKING:
-        RCLCPP_DEBUG(this->get_logger(), "requesting");
-        publishCommand(
+        // 車両が自動モードなら設備連携要求を発出
+        if (vehicle_operation_mode_ == InParkingStatus::VEHICLE_AUTO) {
+          RCLCPP_DEBUG(this->get_logger(), "requesting");
+          publishCommand(
           static_cast<std::underlying_type<CommandState>::type>(CommandState::REQUESTING));
+        } else {  // 車両が手動モードならinfra_approvalをtrueにし、設備連携結果はFAILで返す
+          RCLCPP_WARN(this->get_logger(), "vehicle is manual mode");
+          infra_approval_ = true;
+          service_result_ = ExecuteInParkingTask::Response::FAIL;
+        }
         break;
       default:
         break;
@@ -158,6 +165,7 @@ void CargoLoadingService::onTimer()
 void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPtr msg)
 {
   aw_state_ = msg->aw_state;
+  vehicle_operation_mode_ = msg->vehicle_operation_mode;
 
   RCLCPP_DEBUG(
     this->get_logger(), "inParkingStatus: %s", rosidl_generator_traits::to_yaml(*msg).c_str());
