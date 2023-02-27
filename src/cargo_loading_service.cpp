@@ -53,7 +53,7 @@ CargoLoadingService::CargoLoadingService(const rclcpp::NodeOptions & options)
     "/in_parking/state", rclcpp::QoS{1},
     std::bind(&CargoLoadingService::onInParkingStatus, this, _1), subscribe_option);
   sub_infrastructure_status_ = this->create_subscription<InfrastructureStateArray>(
-    "/infrastructure_status", rclcpp::QoS{1},
+    "/v2i/infrastructure_status", rclcpp::QoS{1},
     std::bind(&CargoLoadingService::onInfrastructureStatus, this, _1), subscribe_option);
 
   // timer
@@ -114,14 +114,6 @@ void CargoLoadingService::onTimer()
 {
   RCLCPP_INFO(this->get_logger(), "timer start");
 
-// aw_stateのsubscribe確認、NONEならばreject
-  if (aw_state_ == InParkingStatus::NONE) {
-    RCLCPP_WARN(this->get_logger(), "aw_state is NONE, reject...");
-    service_result_ = ExecuteInParkingTask::Response::FAIL;
-    timer_->cancel();
-    return;
-  }
-
   // 設備連携が完了していない
   if (!infra_approval_) {
     // aw_stateで条件分岐
@@ -179,8 +171,17 @@ void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray:
   const auto itr = std::find_if(msg->states.begin(), msg->states.end(), [this](const auto & e) {
     return e.id == infra_id_;
   });
+
   if (itr != msg->states.end()) {
-    infra_approval_ = (msg->states.at(std::distance(msg->states.begin(), itr)).state == static_cast<uint8_t>(CommandState::ERROR));
+    const auto &e = msg->states.at(std::distance(msg->states.begin(), itr));
+
+    // 成功した場合、0b01が返ってくる
+    infra_approval_ = (e.state == 0b01);
+
+    // 0b01じゃない場合、エラー出力
+    if (e.state != 0b01) {
+      RCLCPP_ERROR(this->get_logger(), "invalid return value: %d", e.state);
+    }
   }
 
   RCLCPP_DEBUG_THROTTLE(
