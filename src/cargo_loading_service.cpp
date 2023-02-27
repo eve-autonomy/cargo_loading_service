@@ -77,7 +77,7 @@ void CargoLoadingService::execCargoLoading(
   // 設備連携要求開始
   if (timer_->is_canceled()) {
     timer_->reset();
-    RCLCPP_INFO(this->get_logger(), "Timer restart");
+    RCLCPP_DEBUG(this->get_logger(), "Timer restart");
   }
 
   // キャンセルになるまで設備連携要求を投げ続ける
@@ -112,8 +112,6 @@ void CargoLoadingService::publishCommand(const uint8_t state)
 
 void CargoLoadingService::onTimer()
 {
-  RCLCPP_INFO(this->get_logger(), "timer start");
-
   // 設備連携が完了していない
   if (!infra_approval_) {
     // aw_stateで条件分岐
@@ -123,11 +121,11 @@ void CargoLoadingService::onTimer()
         publishCommand(static_cast<std::underlying_type<CommandState>::type>(CommandState::ERROR));
         RCLCPP_ERROR(this->get_logger(), "AW emergency");
         break;
-      // AWが停留所外などではSEND_ZEROを発出し、設備連携結果はFAILで返す
+      // AWが停留所外などではinfra_approvalをtrueにし、設備連携結果はFAILで返す
       case InParkingStatus::AW_OUT_OF_PARKING:
       case InParkingStatus::AW_UNAVAILABLE:
       case InParkingStatus::NONE:
-        RCLCPP_WARN(this->get_logger(), "AW warning");
+        RCLCPP_WARN(this->get_logger(), "AW_OUT_OF_PARKING or AW_UNAVAILABLE or NONE");
         infra_approval_ = true;
         service_result_ = ExecuteInParkingTask::Response::FAIL;
         break;
@@ -135,7 +133,7 @@ void CargoLoadingService::onTimer()
       case InParkingStatus::AW_WAITING_FOR_ROUTE:
       case InParkingStatus::AW_WAITING_FOR_ENGAGE:
       case InParkingStatus::AW_ARRIVED_PARKING:
-        RCLCPP_INFO(this->get_logger(), "requesting");
+        RCLCPP_DEBUG(this->get_logger(), "requesting");
         publishCommand(
           static_cast<std::underlying_type<CommandState>::type>(CommandState::REQUESTING));
         break;
@@ -143,7 +141,7 @@ void CargoLoadingService::onTimer()
         break;
     }
   } else {  // 設備連携が完了
-    RCLCPP_INFO(this->get_logger(), "finished");
+    RCLCPP_DEBUG(this->get_logger(), "finished");
     // SEND_ZEROをn秒間発出し、設備連携結果はSUCCESSで返し、timerをキャンセル
     const auto start_time = this->now();
     while (true) {
@@ -161,19 +159,17 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
 {
   aw_state_ = msg->aw_state;
 
-  RCLCPP_DEBUG_THROTTLE(
-    this->get_logger(), *this->get_clock(), 1000 /* ms */, "inParkingStatus: %s",
-    rosidl_generator_traits::to_yaml(*msg).c_str());
+  RCLCPP_DEBUG(
+    this->get_logger(), "inParkingStatus: %s", rosidl_generator_traits::to_yaml(*msg).c_str());
 }
 
 void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray::ConstSharedPtr msg)
 {
-  const auto itr = std::find_if(msg->states.begin(), msg->states.end(), [this](const auto & e) {
-    return e.id == infra_id_;
-  });
+  const auto itr = std::find_if(
+    msg->states.begin(), msg->states.end(), [this](const auto & e) { return e.id == infra_id_; });
 
   if (itr != msg->states.end()) {
-    const auto &e = msg->states.at(std::distance(msg->states.begin(), itr));
+    const auto & e = msg->states.at(std::distance(msg->states.begin(), itr));
 
     // 成功した場合、0b01が返ってくる
     infra_approval_ = (e.state == 0b01);
@@ -184,9 +180,8 @@ void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray:
     }
   }
 
-  RCLCPP_DEBUG_THROTTLE(
-    this->get_logger(), *this->get_clock(), 1000 /* ms */, "InfrastructureStatus: %s",
-    rosidl_generator_traits::to_yaml(*msg).c_str());
+  RCLCPP_DEBUG(
+    this->get_logger(), "InfrastructureStatus: %s", rosidl_generator_traits::to_yaml(*msg).c_str());
 }
 }  // namespace cargo_loading_service
 
