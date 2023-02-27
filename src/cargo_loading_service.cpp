@@ -179,8 +179,17 @@ void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray:
   const auto itr = std::find_if(msg->states.begin(), msg->states.end(), [this](const auto & e) {
     return e.id == infra_id_;
   });
+
   if (itr != msg->states.end()) {
-    infra_approval_ = (msg->states.at(std::distance(msg->states.begin(), itr)).state == static_cast<uint8_t>(CommandState::ERROR));
+    const auto &e = msg->states.at(std::distance(msg->states.begin(), itr));
+
+    // 成功した場合、0b01が返ってくる
+    infra_approval_ = (e.state == 0b01);
+
+    // 0b01じゃない場合、エラー出力
+    if (e.state != 0b01) {
+      RCLCPP_ERROR(this->get_logger(), "invalid return value: %d", e.state);
+    }
   }
 
   RCLCPP_DEBUG_THROTTLE(
