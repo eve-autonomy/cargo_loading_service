@@ -158,6 +158,7 @@ void CargoLoadingService::onTimer()
       rclcpp::sleep_for(rclcpp::Rate(command_pub_hz_).period());
     }
     infra_approval_ = false;
+    infra_id_ = InfrastructureState::INVALID_ID;
     timer_->cancel();
   }
 }
