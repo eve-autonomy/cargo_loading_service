@@ -72,8 +72,8 @@ private:
   rclcpp::Subscription<InfrastructureStateArray>::SharedPtr sub_infrastructure_status_;
 
   // Timer
-  rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::TimerBase::SharedPtr timeout_check_timer_;
+  rclcpp::TimerBase::SharedPtr infra_control_timer_;
+  rclcpp::TimerBase::SharedPtr inparking_state_timeout_check_timer_;
 
   // Callback
   void execCargoLoading(

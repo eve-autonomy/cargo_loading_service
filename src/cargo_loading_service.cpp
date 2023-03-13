@@ -56,15 +56,15 @@ CargoLoadingService::CargoLoadingService(const rclcpp::NodeOptions & options)
   const auto cmd_pub_interval_ns = rclcpp::Rate(COMMAND_PUBLISH_HZ).period();
   const auto state_check_interval_ns =
     rclcpp::Rate(INPARKING_STATE_CHECK_TIMEOUT_HZ).period();
-  timer_ = create_timer(
+  infra_control_timer_ = create_timer(
     this, get_clock(), cmd_pub_interval_ns, std::bind(&CargoLoadingService::onTimer, this),
     callback_group_subscription_);
-  timeout_check_timer_ = create_timer(
+  inparking_state_timeout_check_timer_ = create_timer(
     this, get_clock(), state_check_interval_ns, std::bind(&CargoLoadingService::onTimeoutCheckTimer, this),
     callback_group_subscription_);
 
   // サービスcall時にtimerが回るように、最初にキャンセルしておく
-  timer_->cancel();
+  infra_control_timer_->cancel();
 }
 
 void CargoLoadingService::execCargoLoading(
@@ -82,13 +82,13 @@ void CargoLoadingService::execCargoLoading(
   service_result_ = ExecuteInParkingTask::Response::SUCCESS;
 
   // 設備連携要求開始
-  if (timer_->is_canceled()) {
-    timer_->reset();
+  if (infra_control_timer_->is_canceled()) {
+    infra_control_timer_->reset();
     RCLCPP_DEBUG(this->get_logger(), "Timer restart");
   }
 
   // キャンセルになるまで設備連携要求を投げ続ける
-  while (!timer_->is_canceled()) {
+  while (!infra_control_timer_->is_canceled()) {
     rclcpp::sleep_for(rclcpp::Rate(COMMAND_PUBLISH_HZ).period());
     RCLCPP_INFO_THROTTLE(
       this->get_logger(), *this->get_clock(), 1000 /* ms */, "request is running");
@@ -168,13 +168,13 @@ void CargoLoadingService::onTimer()
     RCLCPP_INFO(this->get_logger(), "complete reporting to infrastructure that the cargo loading process is over.");
     infra_approval_ = false;
     infra_id_ = InfrastructureState::INVALID_ID;
-    timer_->cancel();
+    infra_control_timer_->cancel();
   }
 }
 
 void CargoLoadingService::onTimeoutCheckTimer()
 {
-  if (timer_->is_canceled() ||
+  if (infra_control_timer_->is_canceled() ||
     aw_state_ == InParkingStatus::AW_EMERGENCY) {
     return;
   }
