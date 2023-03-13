@@ -26,6 +26,7 @@
 #include "v2i_interface_msgs/msg/infrastructure_state_array.hpp"
 
 #include <string>
+#include <chrono>
 
 namespace cargo_loading_service
 {
@@ -47,6 +48,8 @@ private:
   enum class CommandState : uint8_t { REQUESTING = 0b01, ERROR = 0b10 };
   enum class ReceiveState : uint8_t { APPROVAL = 0b01 };
   enum class InfraIdLimit : uint8_t { MIN = 1, MAX = 254 };
+  static constexpr double timeout_time_{0.2};
+  static constexpr double timeout_check_hz_{10};
 
   // variable
   uint8_t infra_id_;
@@ -56,6 +59,8 @@ private:
   uint8_t service_result_{ExecuteInParkingTask::Response::NONE};
   double command_pub_hz_;
   double post_processing_time_;
+  bool aw_state_timeout_{false};
+  rclcpp::Time aw_state_last_receive_time_{rclcpp::Time(0)};
 
   // Service
   tier4_api_utils::Service<ExecuteInParkingTask>::SharedPtr srv_cargo_loading_;
@@ -69,6 +74,7 @@ private:
 
   // Timer
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr timeout_check_timer_;
 
   // Callback
   void execCargoLoading(
@@ -77,6 +83,7 @@ private:
   void onInParkingStatus(const InParkingStatus::ConstSharedPtr msg_ptr);
   void onInfrastructureStatus(const InfrastructureStateArray::ConstSharedPtr msg_ptr);
   void onTimer();
+  void onTimeoutCheckTimer();
   void publishCommand(const uint8_t state);
 
   // Callback Group
