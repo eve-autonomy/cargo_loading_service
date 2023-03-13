@@ -174,15 +174,14 @@ void CargoLoadingService::onTimer()
 
 void CargoLoadingService::onTimeoutCheckTimer()
 {
-  if (timer_->is_canceled() || aw_state_timeout_) {
+  if (timer_->is_canceled() ||
+    aw_state_ == InParkingStatus::AW_EMERGENCY) {
     return;
   }
 
   auto receive_time_diff = get_clock()->now() - aw_state_last_receive_time_;
   if (receive_time_diff.seconds() > INPARKING_STATE_CHECK_TIMEOUT_SEC) {
     aw_state_ = InParkingStatus::AW_EMERGENCY;
-    sub_inparking_status_ = nullptr;
-    aw_state_timeout_ = true;
     RCLCPP_ERROR(
       this->get_logger(), "/in_parking/state receive timeout. Last received time (seconds) = %lf",
       aw_state_last_receive_time_.seconds());
@@ -191,13 +190,14 @@ void CargoLoadingService::onTimeoutCheckTimer()
 
 void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPtr msg)
 {
+  if (aw_state_ == InParkingStatus::AW_EMERGENCY) {
+    RCLCPP_ERROR_ONCE(this->get_logger(),
+      "Stop receiving /in_parking/state because AW is in emergency");
+    return;
+  }
   aw_state_last_receive_time_ = msg->stamp;
   aw_state_ = msg->aw_state;
   vehicle_operation_mode_ = msg->vehicle_operation_mode;
-
-  if (msg->aw_state == InParkingStatus::AW_EMERGENCY) {
-    sub_inparking_status_ = nullptr;
-  }
 
   RCLCPP_DEBUG(
     this->get_logger(), "inParkingStatus: %s", rosidl_generator_traits::to_yaml(*msg).c_str());
