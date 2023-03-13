@@ -27,10 +27,6 @@ CargoLoadingService::CargoLoadingService(const rclcpp::NodeOptions & options)
   using std::placeholders::_2;
   tier4_api_utils::ServiceProxyNodeInterface proxy(this);
 
-  // Parameter
-  command_pub_hz_ = this->declare_parameter<double>("command_pub_hz", 5.0);
-  post_processing_time_ = this->declare_parameter<double>("post_processing_time", 2.0);
-
   // Callback group
   callback_group_subscription_ =
     this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -57,13 +53,14 @@ CargoLoadingService::CargoLoadingService(const rclcpp::NodeOptions & options)
     std::bind(&CargoLoadingService::onInfrastructureStatus, this, _1), subscribe_option);
 
   // timer
-  const auto period_ns = rclcpp::Rate(command_pub_hz_).period();
-  const auto timeout_check_period_ns = rclcpp::Rate(timeout_check_hz_).period();
+  const auto cmd_pub_interval_ns = rclcpp::Rate(COMMAND_PUBLISH_HZ).period();
+  const auto state_check_interval_ns =
+    rclcpp::Rate(INPARKING_STATE_CHECK_TIMEOUT_HZ).period();
   timer_ = create_timer(
-    this, get_clock(), period_ns, std::bind(&CargoLoadingService::onTimer, this),
+    this, get_clock(), cmd_pub_interval_ns, std::bind(&CargoLoadingService::onTimer, this),
     callback_group_subscription_);
   timeout_check_timer_ = create_timer(
-    this, get_clock(), timeout_check_period_ns, std::bind(&CargoLoadingService::onTimeoutCheckTimer, this),
+    this, get_clock(), state_check_interval_ns, std::bind(&CargoLoadingService::onTimeoutCheckTimer, this),
     callback_group_subscription_);
 
   // サービスcall時にtimerが回るように、最初にキャンセルしておく
@@ -92,7 +89,7 @@ void CargoLoadingService::execCargoLoading(
 
   // キャンセルになるまで設備連携要求を投げ続ける
   while (!timer_->is_canceled()) {
-    rclcpp::sleep_for(rclcpp::Rate(command_pub_hz_).period());
+    rclcpp::sleep_for(rclcpp::Rate(COMMAND_PUBLISH_HZ).period());
     RCLCPP_INFO_THROTTLE(
       this->get_logger(), *this->get_clock(), 1000 /* ms */, "request is running");
   }
@@ -165,8 +162,8 @@ void CargoLoadingService::onTimer()
     while (true) {
       publishCommand(InfrastructureCommand::SEND_ZERO);
       const auto time_diff = this->now() - start_time;
-      if (time_diff.seconds() > post_processing_time_) break;
-      rclcpp::sleep_for(rclcpp::Rate(command_pub_hz_).period());
+      if (time_diff.seconds() > COMMAND_DURATION_MIN_SEC) break;
+      rclcpp::sleep_for(rclcpp::Rate(COMMAND_PUBLISH_HZ).period());
     }
     RCLCPP_INFO(this->get_logger(), "complete reporting to infrastructure that the cargo loading process is over.");
     infra_approval_ = false;
@@ -182,7 +179,7 @@ void CargoLoadingService::onTimeoutCheckTimer()
   }
 
   auto receive_time_diff = get_clock()->now() - aw_state_last_receive_time_;
-  if (receive_time_diff.seconds() > timeout_time_) {
+  if (receive_time_diff.seconds() > INPARKING_STATE_CHECK_TIMEOUT_SEC) {
     aw_state_ = InParkingStatus::AW_EMERGENCY;
     sub_inparking_status_ = nullptr;
     aw_state_timeout_ = true;

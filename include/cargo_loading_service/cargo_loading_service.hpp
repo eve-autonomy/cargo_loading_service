@@ -48,8 +48,10 @@ private:
   enum class CommandState : uint8_t { REQUESTING = 0b01, ERROR = 0b10 };
   enum class ReceiveState : uint8_t { APPROVAL = 0b01 };
   enum class InfraIdLimit : uint8_t { MIN = 1, MAX = 254 };
-  static constexpr double timeout_time_{0.2};
-  static constexpr double timeout_check_hz_{10};
+  static constexpr double INPARKING_STATE_CHECK_TIMEOUT_SEC{0.2};
+  static constexpr double INPARKING_STATE_CHECK_TIMEOUT_HZ{10.0};
+  static constexpr double COMMAND_PUBLISH_HZ{5.0};
+  static constexpr double COMMAND_DURATION_MIN_SEC{2.0};
 
   // variable
   uint8_t infra_id_;
@@ -57,8 +59,6 @@ private:
   int32_t vehicle_operation_mode_{InParkingStatus::VEHICLE_MANUAL};
   bool infra_approval_{false};
   uint8_t service_result_{ExecuteInParkingTask::Response::NONE};
-  double command_pub_hz_;
-  double post_processing_time_;
   bool aw_state_timeout_{false};
   rclcpp::Time aw_state_last_receive_time_{rclcpp::Time(0)};
 
