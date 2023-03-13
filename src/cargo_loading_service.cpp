@@ -65,6 +65,7 @@ CargoLoadingService::CargoLoadingService(const rclcpp::NodeOptions & options)
 
   // サービスcall時にtimerが回るように、最初にキャンセルしておく
   infra_control_timer_->cancel();
+  inparking_state_timeout_check_timer_->cancel();
 }
 
 void CargoLoadingService::execCargoLoading(
@@ -198,6 +199,9 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
   aw_state_last_receive_time_ = msg->stamp;
   aw_state_ = msg->aw_state;
   vehicle_operation_mode_ = msg->vehicle_operation_mode;
+  if (inparking_state_timeout_check_timer_->is_canceled()) {
+    inparking_state_timeout_check_timer_->reset();
+  }
 
   RCLCPP_DEBUG(
     this->get_logger(), "inParkingStatus: %s", rosidl_generator_traits::to_yaml(*msg).c_str());
