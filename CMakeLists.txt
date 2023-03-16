@@ -29,13 +29,10 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-ament_auto_add_library(cargo_loading_service SHARED
+ament_auto_add_executable(cargo_loading_service
   src/cargo_loading_service.cpp
+  src/cargo_loading_service_node.cpp
 )
-
-rclcpp_components_register_node(cargo_loading_service
-  PLUGIN "cargo_loading_service::CargoLoadingService"
-  EXECUTABLE cargo_loading_service_node)
 
 ament_auto_package(INSTALL_TO_SHARE
   launch

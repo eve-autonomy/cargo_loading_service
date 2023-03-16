@@ -228,7 +228,3 @@ void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray:
     this->get_logger(), "InfrastructureStatus: %s", rosidl_generator_traits::to_yaml(*msg).c_str());
 }
 }  // namespace cargo_loading_service
-
-#include "rclcpp_components/register_node_macro.hpp"
-
-RCLCPP_COMPONENTS_REGISTER_NODE(cargo_loading_service::CargoLoadingService)
