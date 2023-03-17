@@ -142,16 +142,9 @@ void CargoLoadingService::onTimer()
       case InParkingStatus::AW_WAITING_FOR_ROUTE:
       case InParkingStatus::AW_WAITING_FOR_ENGAGE:
       case InParkingStatus::AW_ARRIVED_PARKING:
-        // 車両が自動モードなら設備連携要求を発出
-        if (vehicle_operation_mode_ == InParkingStatus::VEHICLE_AUTO) {
-          RCLCPP_DEBUG(this->get_logger(), "requesting");
-          publishCommand(
-          static_cast<std::underlying_type<CommandState>::type>(CommandState::REQUESTING));
-        } else {  // 車両が手動モードならinfra_approvalをtrueにし、設備連携結果はFAILで返す
-          RCLCPP_INFO(this->get_logger(), "vehicle is manual mode");
-          infra_approval_ = true;
-          service_result_ = ExecuteInParkingTask::Response::FAIL;
-        }
+        RCLCPP_DEBUG(this->get_logger(), "requesting");
+        publishCommand(
+        static_cast<std::underlying_type<CommandState>::type>(CommandState::REQUESTING));
         break;
       default:
         break;
