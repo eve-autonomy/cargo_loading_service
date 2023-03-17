@@ -126,7 +126,7 @@ void CargoLoadingService::onTimer()
     switch (aw_state_) {
       // AWがEmergencyの場合はERRORを発出し続ける
       case InParkingStatus::AW_EMERGENCY:
-        publishCommand(static_cast<std::underlying_type<CommandState>::type>(CommandState::ERROR));
+        publishCommand(static_cast<uint8_t>(CommandState::ERROR));
         RCLCPP_ERROR_THROTTLE(
           this->get_logger(), *this->get_clock(), 1000 /* ms */, "AW emergency");
         break;
@@ -143,8 +143,7 @@ void CargoLoadingService::onTimer()
       case InParkingStatus::AW_WAITING_FOR_ENGAGE:
       case InParkingStatus::AW_ARRIVED_PARKING:
         RCLCPP_DEBUG(this->get_logger(), "requesting");
-        publishCommand(
-        static_cast<std::underlying_type<CommandState>::type>(CommandState::REQUESTING));
+        publishCommand(static_cast<uint8_t>(CommandState::REQUESTING));
         break;
       default:
         break;
