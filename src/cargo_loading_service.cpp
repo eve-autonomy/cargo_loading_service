@@ -201,6 +201,11 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
 
 void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray::ConstSharedPtr msg)
 {
+  if (aw_state_ == InParkingStatus::AW_EMERGENCY) {
+    RCLCPP_ERROR_ONCE(this->get_logger(),
+      "Stop receiving infrastructure status because AW is in emergency");
+    return;
+  }
   const auto itr = std::find_if(
     msg->states.begin(), msg->states.end(), [this](const auto & e) { return e.id == infra_id_; });
 
