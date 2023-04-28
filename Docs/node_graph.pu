@@ -1,0 +1,21 @@
+@startuml
+
+usecase "cargo_loading_service"  #LightCoral
+rectangle "in_parking_task_manager Module" {
+    interface "/in_parking/state"
+    interface "[service]/in_parking/task" as in_parking_task_service
+}
+
+rectangle "v2i_interface" {
+    interface "/cargo_loding/infrastructure_commands"
+    interface "/v2i/infrastructer_states"
+}
+
+(cargo_loading_service)  <--- (in_parking_task_service)
+(cargo_loading_service)  -.-> (in_parking_task_service)
+(cargo_loading_service) <-- (/in_parking/state)
+(/v2i/infrastructer_states) --> (cargo_loading_service)
+(/cargo_loding/infrastructure_commands) <-- (cargo_loading_service)
+(in_parking_task_service) <-[hidden]- (/in_parking/state)
+
+@enduml
