@@ -7,7 +7,7 @@ There are three types of control instructions: process start, end, and error.
 ## Input and Output
 - input
   - from [in_parking_task_manager](https://github.com/tier4/in_parking_task_manager)
-    - `/in_parking/state` \[[tier4_v2x_msgs/msg/InfrastructureCommandArray](https://github.com/tier4/tier4_autoware_msgs/blob/tier4/universe/tier4_v2x_msgs/msg/InfrastructureCommandArray.msg)\]:<br>State at vehicle stop points.
+    - `/in_parking/state` \[[in_parking_msgs/msg/InParkingStatus](https://github.com/tier4/in_parking_msgs/blob/main/msg/InParkingStatus.msg)\]:<br>State at vehicle stop points.
   - from [v2i_interface](https://github.com/eve-autonomy/cargo_loading_service)
     - `/v2i/infrastructer_states` \[[v2i_interface_msgs/msg/InfrastructureStateArray.msg](https://github.com/eve-autonomy/v2i_interface_msgs/blob/main/msg/InfrastructureState.msg)\]:<br>ROS2 interface from `v2i_status` (UDP).
 - output
