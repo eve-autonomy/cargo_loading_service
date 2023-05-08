@@ -6,7 +6,7 @@ rectangle "in_parking_task_manager Module" {
     interface "[service]/in_parking/task" as in_parking_task_service
 }
 
-rectangle "v2i_interface" {
+rectangle "v2i_interface Module" {
     interface "/cargo_loding/infrastructure_commands"
     interface "/v2i/infrastructer_states"
 }
