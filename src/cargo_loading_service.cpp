@@ -196,7 +196,7 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
   }
 
   RCLCPP_DEBUG(
-    this->get_logger(), "inParkingStatus: %s", rosidl_generator_traits::to_yaml(*msg).c_str());
+    this->get_logger(), "inParkingStatus: %s", to_yaml(*msg).c_str());
 }
 
 void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray::ConstSharedPtr msg)
@@ -222,6 +222,6 @@ void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray:
   }
 
   RCLCPP_DEBUG(
-    this->get_logger(), "InfrastructureStatus: %s", rosidl_generator_traits::to_yaml(*msg).c_str());
+    this->get_logger(), "InfrastructureStatus: %s", to_yaml(*msg).c_str());
 }
 }  // namespace cargo_loading_service
