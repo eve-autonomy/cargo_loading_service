@@ -15,6 +15,8 @@
 -->
 
 <launch>
+  <arg name="inparking_state_check_timeout_sec" default="5.0"/>
   <node pkg="cargo_loading_service" exec="cargo_loading_service" name="cargo_loading_service" output="screen">
+    <param name="inparking_state_check_timeout_sec" value="$(var inparking_state_check_timeout_sec)"/>
   </node>
 </launch>

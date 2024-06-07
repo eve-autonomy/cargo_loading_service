@@ -27,6 +27,10 @@ CargoLoadingService::CargoLoadingService(const rclcpp::NodeOptions & options)
   using std::placeholders::_2;
   tier4_api_utils::ServiceProxyNodeInterface proxy(this);
 
+  // rosparam
+  inparking_state_check_timeout_sec_ =
+  declare_parameter<double>("inparking_state_check_timeout_sec", 5.0);
+
   // Callback group
   callback_group_subscription_ =
     this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -173,7 +177,7 @@ void CargoLoadingService::onTimeoutCheckTimer()
   }
 
   auto receive_time_diff = get_clock()->now() - aw_state_last_receive_time_;
-  if (receive_time_diff.seconds() > INPARKING_STATE_CHECK_TIMEOUT_SEC) {
+  if (receive_time_diff.seconds() > inparking_state_check_timeout_sec_) {
     aw_state_ = InParkingStatus::AW_EMERGENCY;
     RCLCPP_ERROR(
       this->get_logger(), "/in_parking/state receive timeout. Last received time (seconds) = %lf",

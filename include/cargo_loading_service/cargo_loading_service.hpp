@@ -48,7 +48,6 @@ private:
   enum class CommandState : uint8_t { REQUESTING = 0b01, ERROR = 0b10 };
   enum class ReceiveState : uint8_t { APPROVAL = 0b01 };
   enum class InfraIdLimit : uint8_t { MIN = 1, MAX = 254 };
-  static constexpr double INPARKING_STATE_CHECK_TIMEOUT_SEC{0.2};
   static constexpr double INPARKING_STATE_CHECK_TIMEOUT_HZ{10.0};
   static constexpr double COMMAND_PUBLISH_HZ{5.0};
   static constexpr double COMMAND_DURATION_MIN_SEC{2.0};
@@ -60,6 +59,9 @@ private:
   bool infra_approval_{false};
   uint8_t service_result_{ExecuteInParkingTask::Response::NONE};
   rclcpp::Time aw_state_last_receive_time_{rclcpp::Time(0)};
+
+  // Parameter
+  double inparking_state_check_timeout_sec_;
 
   // Service
   tier4_api_utils::Service<ExecuteInParkingTask>::SharedPtr srv_cargo_loading_;
