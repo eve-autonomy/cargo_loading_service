@@ -186,6 +186,8 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
   if (aw_state_ == InParkingStatus::AW_EMERGENCY) {
     RCLCPP_ERROR_ONCE(this->get_logger(),
       "Stop receiving /in_parking/state because AW is in emergency");
+      infra_control_timer_->cancel();
+      inparking_state_timeout_check_timer_->cancel();
     return;
   }
   aw_state_last_receive_time_ = msg->stamp;
