@@ -188,15 +188,16 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
       "Stop receiving /in_parking/state because AW is in emergency");
     infra_control_timer_->cancel();
     inparking_state_timeout_check_timer_->cancel();
-    return;
-  }
-  if (msg->aw_state == InParkingStatus::AW_OUT_OF_PARKING) {
+    
+    if (msg->aw_state == InParkingStatus::AW_OUT_OF_PARKING) {
     RCLCPP_ERROR_ONCE(this->get_logger(),
       "Aw_state was reset due to a key switch");
     infra_control_timer_->reset();
     inparking_state_timeout_check_timer_->reset();
     return;
   }
+  }
+  
   aw_state_last_receive_time_ = msg->stamp;
   aw_state_ = msg->aw_state;
   vehicle_operation_mode_ = msg->vehicle_operation_mode;
@@ -232,3 +233,4 @@ void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray:
     this->get_logger(), "InfrastructureStatus: %s", to_yaml(*msg).c_str());
 }
 }  // namespace cargo_loading_service
+
