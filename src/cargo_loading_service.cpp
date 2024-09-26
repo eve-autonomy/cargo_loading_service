@@ -120,6 +120,7 @@ void CargoLoadingService::publishCommand(const uint8_t state)
 
 void CargoLoadingService::onTimer()
 {
+  // RCLCPP_INFO(this->get_logger(), "%d", aw_state_);
   // 設備連携が完了していない
   if (!infra_approval_) {
     // aw_stateで条件分岐
@@ -186,30 +187,34 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
   if (aw_state_ == InParkingStatus::AW_EMERGENCY) {
     RCLCPP_ERROR_ONCE(this->get_logger(),
       "Stop receiving /in_parking/state because AW is in emergency");
+    
     infra_control_timer_->cancel();
     inparking_state_timeout_check_timer_->cancel();
-    
+
     if (msg->aw_state == InParkingStatus::AW_OUT_OF_PARKING) {
       RCLCPP_ERROR_ONCE(this->get_logger(),
         "Aw_state was reset due to a key switch");
       // infra_approval_ = false;
       // infra_id_ = InfrastructureState::INVALID_ID;
-      // service_result_ = ExecuteInParkingTask::Response::NONE;
-      //aw_state_ = InParkingStatus::AW_EMERGENCY;
+      service_result_ = ExecuteInParkingTask::Response::NONE;
+      aw_state_ = InParkingStatus::NONE;
       // aw_state_last_receive_time_ = rclcpp::Time(0);
       // vehicle_operation_mode_ = InParkingStatus::VEHICLE_MANUAL;
-      // infra_approval_ = false;
-      // infra_id_ = InfrastructureState::INVALID_ID;
       infra_control_timer_->reset();
       inparking_state_timeout_check_timer_->reset();
-      return;
+
     }
+
     return;
   }
   
   aw_state_last_receive_time_ = msg->stamp;
   aw_state_ = msg->aw_state;
   vehicle_operation_mode_ = msg->vehicle_operation_mode;
+
+  if (inparking_state_timeout_check_timer_->is_canceled()) {
+    inparking_state_timeout_check_timer_->reset();
+  }
 
   RCLCPP_DEBUG(
     this->get_logger(), "inParkingStatus: %s", to_yaml(*msg).c_str());
