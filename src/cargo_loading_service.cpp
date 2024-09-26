@@ -192,6 +192,8 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
     if (msg->aw_state == InParkingStatus::AW_OUT_OF_PARKING) {
     RCLCPP_ERROR_ONCE(this->get_logger(),
       "Aw_state was reset due to a key switch");
+    service_result_ = ExecuteInParkingTask::Response::NONE;
+    infra_id_ = InfrastructureState::INVALID_ID;
     infra_control_timer_->reset();
     inparking_state_timeout_check_timer_->reset();
     return;
