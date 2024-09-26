@@ -120,7 +120,6 @@ void CargoLoadingService::publishCommand(const uint8_t state)
 
 void CargoLoadingService::onTimer()
 {
-  // RCLCPP_INFO(this->get_logger(), "%d", aw_state_);
   // 設備連携が完了していない
   if (!infra_approval_) {
     // aw_stateで条件分岐
