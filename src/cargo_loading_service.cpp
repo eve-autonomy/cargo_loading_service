@@ -195,13 +195,12 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
     infra_control_timer_->reset();
     inparking_state_timeout_check_timer_->reset();
     return;
-  }
+    }
   }
   
   aw_state_last_receive_time_ = msg->stamp;
   aw_state_ = msg->aw_state;
   vehicle_operation_mode_ = msg->vehicle_operation_mode;
-
 
   RCLCPP_DEBUG(
     this->get_logger(), "inParkingStatus: %s", to_yaml(*msg).c_str());
@@ -233,4 +232,3 @@ void CargoLoadingService::onInfrastructureStatus(const InfrastructureStateArray:
     this->get_logger(), "InfrastructureStatus: %s", to_yaml(*msg).c_str());
 }
 }  // namespace cargo_loading_service
-
