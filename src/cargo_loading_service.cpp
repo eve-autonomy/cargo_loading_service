@@ -190,14 +190,21 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
     inparking_state_timeout_check_timer_->cancel();
     
     if (msg->aw_state == InParkingStatus::AW_OUT_OF_PARKING) {
-    RCLCPP_ERROR_ONCE(this->get_logger(),
-      "Aw_state was reset due to a key switch");
-    service_result_ = ExecuteInParkingTask::Response::NONE;
-    infra_id_ = InfrastructureState::INVALID_ID;
-    infra_control_timer_->reset();
-    inparking_state_timeout_check_timer_->reset();
-    return;
+      RCLCPP_ERROR_ONCE(this->get_logger(),
+        "Aw_state was reset due to a key switch");
+      // infra_approval_ = false;
+      // infra_id_ = InfrastructureState::INVALID_ID;
+      // service_result_ = ExecuteInParkingTask::Response::NONE;
+      //aw_state_ = InParkingStatus::AW_EMERGENCY;
+      // aw_state_last_receive_time_ = rclcpp::Time(0);
+      // vehicle_operation_mode_ = InParkingStatus::VEHICLE_MANUAL;
+      // infra_approval_ = false;
+      // infra_id_ = InfrastructureState::INVALID_ID;
+      infra_control_timer_->reset();
+      inparking_state_timeout_check_timer_->reset();
+      return;
     }
+    return;
   }
   
   aw_state_last_receive_time_ = msg->stamp;
