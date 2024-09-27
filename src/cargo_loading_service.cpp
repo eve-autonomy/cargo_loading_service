@@ -187,15 +187,11 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
     RCLCPP_ERROR_ONCE(this->get_logger(),
       "Stop receiving /in_parking/state because AW is in emergency");
     
-    infra_control_timer_->cancel();
-    inparking_state_timeout_check_timer_->cancel();
 
     if (msg->aw_state == InParkingStatus::AW_OUT_OF_PARKING) {
       RCLCPP_ERROR_ONCE(this->get_logger(),
         "Aw_state was reset due to a key switch");
       aw_state_ = InParkingStatus::NONE;
-      infra_control_timer_->reset();
-      inparking_state_timeout_check_timer_->reset();
 
     }
 
