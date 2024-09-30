@@ -130,6 +130,7 @@ void CargoLoadingService::onTimer()
     switch (aw_state_) {
       // AWがEmergencyの場合はERRORを発出し続ける
       case InParkingStatus::AW_EMERGENCY:
+        is_emergency_occurred_ = true;
         publishCommand(static_cast<uint8_t>(CommandState::ERROR));
         RCLCPP_ERROR_THROTTLE(
           this->get_logger(), *this->get_clock(), 1000 /* ms */, "AW emergency");
@@ -155,12 +156,16 @@ void CargoLoadingService::onTimer()
   } else {  // 設備連携が完了
     RCLCPP_INFO(this->get_logger(), "try reporting to infrastructure that the cargo loading process is over.");
     // SEND_ZEROをn秒間発出し、設備連携結果はSUCCESSで返し、timerをキャンセル
-    const auto start_time = this->now();
-    while (true) {
-      publishCommand(InfrastructureCommand::SEND_ZERO);
-      const auto time_diff = this->now() - start_time;
-      if (time_diff.seconds() > COMMAND_DURATION_MIN_SEC) break;
-      rclcpp::sleep_for(rclcpp::Rate(COMMAND_PUBLISH_HZ).period());
+    if (is_emergency_occurred_==false) {
+      const auto start_time = this->now();
+      while (true) {
+        publishCommand(InfrastructureCommand::SEND_ZERO);
+        const auto time_diff = this->now() - start_time;
+        if (time_diff.seconds() > COMMAND_DURATION_MIN_SEC) break;
+        rclcpp::sleep_for(rclcpp::Rate(COMMAND_PUBLISH_HZ).period());
+      }
+    }else{
+      is_emergency_occurred_ = false;
     }
     RCLCPP_INFO(this->get_logger(), "complete reporting to infrastructure that the cargo loading process is over.");
     infra_approval_ = false;
@@ -190,11 +195,22 @@ void CargoLoadingService::onInParkingStatus(const InParkingStatus::ConstSharedPt
   if (aw_state_ == InParkingStatus::AW_EMERGENCY) {
     RCLCPP_ERROR_ONCE(this->get_logger(),
       "Stop receiving /in_parking/state because AW is in emergency");
+    
+
+    if (msg->aw_state == InParkingStatus::AW_OUT_OF_PARKING) {
+      RCLCPP_ERROR_ONCE(this->get_logger(),
+        "Aw_state was reset due to a key switch");
+      aw_state_ = InParkingStatus::NONE;
+
+    }
+
     return;
   }
+  
   aw_state_last_receive_time_ = msg->stamp;
   aw_state_ = msg->aw_state;
   vehicle_operation_mode_ = msg->vehicle_operation_mode;
+
   if (inparking_state_timeout_check_timer_->is_canceled()) {
     inparking_state_timeout_check_timer_->reset();
   }
