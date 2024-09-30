@@ -59,6 +59,7 @@ private:
   int32_t vehicle_operation_mode_{InParkingStatus::VEHICLE_MANUAL};
   bool infra_approval_{false};
   uint8_t service_result_{ExecuteInParkingTask::Response::NONE};
+  bool is_emergency_occurred_{false};
   rclcpp::Time aw_state_last_receive_time_{rclcpp::Time(0)};
 
   // Service
